@@ -43,8 +43,14 @@ def create_app(config_name):
     # 开启csrf保护
     CSRFProtect(app)
     Session(app)
-    # 注册蓝图
+    # 注册index中蓝图
     from info.modules.index import index_blu
     app.register_blueprint(index_blu)
 
+
+    # 注册passport中的蓝图
+    from info.modules.passport import passport_blu
+    app.register_blueprint(passport_blu)
+
     return app
+

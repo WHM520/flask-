@@ -8,10 +8,11 @@ manager = Manager(app)
 
 
 # 将app与db关联起来
-Migrate(app, db) 
+Migrate(app, db)
 
 # 添加迁移命令到manager中
 manager.add_command('db', MigrateCommand)
 
 if __name__ == '__main__':
+    print(app.url_map)
     manager.run()
