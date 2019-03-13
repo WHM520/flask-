@@ -26,7 +26,6 @@ tb_user_follows = db.Table(
 )
 
 
-
 class User(BaseModel, db.Model):
     """用户"""
     __tablename__ = "info_user"

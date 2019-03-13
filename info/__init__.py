@@ -1,17 +1,25 @@
 import logging
 from logging.handlers import RotatingFileHandler
+
 from flask import Flask
+# 可以用来指定 session 保存的位置
+from flask import g
+from flask import render_template
 from flask.ext.session import Session
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask.ext.wtf import CSRFProtect
+from flask.ext.wtf.csrf import generate_csrf
 from redis import StrictRedis
+
 from config import config
 
-# 初始化数据库
 db = SQLAlchemy()
-# 用来提示一个函数，或者一个类它里面的各个变量的情况。
-# 具体使用请参考:https://www.cnblogs.com/xieqiankun/p/type_hints_in_python3.html
+
+# https://www.cnblogs.com/xieqiankun/p/type_hints_in_python3.html
 redis_store = None  # type: StrictRedis
+
+
+# redis_store: StrictRedis = None
 
 
 def setup_log(config_name):
@@ -28,29 +36,63 @@ def setup_log(config_name):
 
 
 def create_app(config_name):
-    # 配置日志,并传入参数
+    # 配置日志,并且传入配置名字，以便能获取到指定配置所对应的日志等级
     setup_log(config_name)
-    # 创建flask对象
+    # 创建Flask对象
     app = Flask(__name__)
     # 加载配置
     app.config.from_object(config[config_name])
-    # 初始化
+    # 通过app初始化
     db.init_app(app)
-    # 初始化 redis
+    # 初始化 redis 存储对象
     global redis_store
-
-    redis_store = StrictRedis(host=config[config_name].REDIS_HOST, port=config[config_name].REDIS_PORT)
-    # 开启csrf保护
+    redis_store = StrictRedis(host=config[config_name].REDIS_HOST, port=config[config_name].REDIS_PORT,
+                              decode_responses=True)
+    # 开启当前项目 CSRF 保护，只做服务器验证功能
+    # 帮我们做了：从cookie中取出随机值，从表单中取出随机，然后进行校验，并且响应校验结果
+    # 我们需要做：1. 在返回响应的时候，往cookie中添加一个csrf_token，2. 并且在表单中添加一个隐藏的csrf_token
+    # 而我们现在登录或者注册不是使用的表单，而是使用 ajax 请求，所以我们需要在 ajax 请求的时候带上 csrf_token 这个随机值就可以了
     CSRFProtect(app)
+    # 设置session保存指定位置
     Session(app)
-    # 注册index中蓝图
+
+    # 初始化数据库
+    #  在Flask很多扩展里面都可以先初始化扩展的对象，然后再去调用 init_app 方法去初始化
+    from info.utils.common import do_index_class
+    # 添加自定义过滤器
+    app.add_template_filter(do_index_class, "index_class")
+
+    from info.utils.common import user_login_data
+
+    @app.errorhandler(404)
+    @user_login_data
+    def page_not_fount(e):
+        user = g.user
+        data = {"user": user.to_dict() if user else None}
+        return render_template('news/404.html', data=data)
+
+    @app.after_request
+    def after_request(response):
+        # 生成随机的csrf_token的值
+        csrf_token = generate_csrf()
+        # 设置一个cookie
+        response.set_cookie("csrf_token", csrf_token)
+        return response
+
+    # 注册蓝图
     from info.modules.index import index_blu
     app.register_blueprint(index_blu)
 
-
-    # 注册passport中的蓝图
     from info.modules.passport import passport_blu
     app.register_blueprint(passport_blu)
 
-    return app
+    from info.modules.news import news_blu
+    app.register_blueprint(news_blu)
 
+    from info.modules.profile import profile_blu
+    app.register_blueprint(profile_blu)
+
+    from info.modules.admin import admin_blu
+    app.register_blueprint(admin_blu, url_prefix="/admin")
+
+    return app

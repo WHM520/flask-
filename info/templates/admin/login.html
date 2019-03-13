@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>新经资讯后台管理</title>
+    <link rel="stylesheet" type="text/css" href="../../static/admin/css/style.css">
+    <script type="text/javascript" src="../../static/admin/js/jquery.min.js"></script>
+    <script type="text/javascript" src="../../static/admin/js/vector.js"></script>
+</head>
+<body>
+
+<div id="container">
+	<div id="output">
+		<div class="containerT">
+			<h1>后台管理员登陆</h1>
+			<form class="form login_form" method="post" id="entry_form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="text" name="username" placeholder="用户名" class="input_txt">
+                <input type="password" name="password" placeholder="密码" class="input_txt">
+                {% if errmsg %}
+                    <div class="error_tip" style="display: block">{{ errmsg }}</div>
+                {% endif %}
+
+                <input type="submit" value="登 录" class="input_sub">
+			</form>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript">
+    $(function(){
+        Victor("container", "output");   //登陆背景函数
+        $("#entry_name").focus();
+        $(document).keydown(function(event){
+            if(event.keyCode==13){
+                $("#entry_btn").click();
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
+
+
+
+{#<!DOCTYPE html>#}
+{#<html lang="en">#}
+{#<head>#}
+{#	<meta charset="UTF-8">#}
+{#	<title>新经资讯后台管理</title>#}
+{#	<link rel="stylesheet" type="text/css" href="../../static/admin/css/reset.css">#}
+{#	<link rel="stylesheet" type="text/css" href="../../static/admin/css/main.css">#}
+{#</head>#}
+{#<body>#}
+{#	<div class="login_logo">#}
+{#		<img src="../../static/admin/images/logo.png" alt="">#}
+{#	</div>	#}
+{#	<form method="post" class="login_form">#}
+{#		<h1 class="login_title">用户登录</h1>#}
+{#        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">#}
+{#		<input type="text" name="username" placeholder="用户名" class="input_txt">#}
+{#		<input type="password" name="password" placeholder="密码" class="input_txt">#}
+{#        {% if errmsg %}#}
+{#            <div class="error_tip" style="display: block">{{ errmsg }}</div>#}
+{#        {% endif %}#}
+{##}
+{#		<input type="submit" value="登 录" class="input_sub">#}
+{#	</form>#}
+{#	<div class="login_bg"></div>#}
+{#</body>#}
+{#</html>#}
+{##}
+{##}
+{##}
